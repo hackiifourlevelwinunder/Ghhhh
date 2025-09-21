@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto RNG — Live</title>
+  <style>
+    body { background:#0c1a2a; color:#fff; font-family:Arial; text-align:center; padding:20px; }
+    .clock { font-size:2em; margin:20px; }
+    .box { background:#142b4f; padding:20px; border-radius:12px; margin:10px auto; width:300px; }
+    .number { font-size:3em; margin:10px; color:#4dabf7; }
+  </style>
+</head>
+<body>
+  <h1>Secure RNG (Crypto)</h1>
+  <div class="clock" id="clock"></div>
+
+  <div class="box">
+    <h2>Upcoming (Preview)</h2>
+    <div class="number" id="preview">--</div>
+  </div>
+
+  <div class="box">
+    <h2>Revealed (Final)</h2>
+    <div class="number" id="reveal">--</div>
+  </div>
+
+  <div class="box">
+    <h2>History (last 10)</h2>
+    <ul id="history"></ul>
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent = now.toLocaleTimeString();
+      requestAnimationFrame(updateClock);
+    }
+    updateClock();
+
+    const evtSource = new EventSource("/events");
+
+    evtSource.addEventListener("preview", (e) => {
+      const data = JSON.parse(e.data);
+      document.getElementById("preview").textContent = data.number;
+    });
+
+    evtSource.addEventListener("reveal", (e) => {
+      const data = JSON.parse(e.data);
+      document.getElementById("reveal").textContent = data.number;
+      addHistory(data.number, data.generatedAt);
+    });
+
+    function addHistory(num, time) {
+      const li = document.createElement("li");
+      li.textContent = `${num} — ${new Date(time).toLocaleTimeString()}`;
+      const ul = document.getElementById("history");
+      ul.insertBefore(li, ul.firstChild);
+      if (ul.childNodes.length > 10) ul.removeChild(ul.lastChild);
+    }
+  </script>
+</body>
+</html>
